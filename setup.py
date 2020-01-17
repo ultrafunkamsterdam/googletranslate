@@ -1,3 +1,6 @@
+from setuptools import setup
+
+
 setup(
     name='googletranslate',
     version='1.1',
