@@ -325,7 +325,7 @@ class Translator(object):
                     else:
                         e.append(l >> 12 | 224)
                     e.append(l >> 6 & 63 | 128)
-                    e.append(l & 63 | 128)
+                e.append(l & 63 | 128)
             g += 1
         a = b
         for i, value in enumerate(e):
