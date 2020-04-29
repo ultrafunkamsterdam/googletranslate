@@ -289,7 +289,7 @@ class Translator(object):
             return a
 
         a = []
-        text = add_surrogate(text)
+        text = _add_surrogate(text)
         for i in text:
             val = ord(i)
             if val < 0x10000:
