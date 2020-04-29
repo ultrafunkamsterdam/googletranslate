@@ -48,6 +48,7 @@
 
 import math
 import re
+import struct
 import time
 
 import requests
@@ -159,6 +160,13 @@ LANG_CODE_TO_NAME = {
     "TW": "Chinese (Traditional)" ,
 }
 LANG_NAME_TO_CODE = dict(map(reversed, LANG_CODE_TO_NAME.items()))
+
+
+def _add_surrogate(text):
+    return ''.join(
+        ''.join(chr(y) for y in struct.unpack('<HH', x.encode('utf-16le')))
+        if (0x10000 <= ord(x) <= 0x10FFFF) else x for x in text
+    )
 
 
 def translate(text, from_lang='auto', to_lang=None, ):
@@ -281,6 +289,7 @@ class Translator(object):
             return a
 
         a = []
+        text = add_surrogate(text)
         for i in text:
             val = ord(i)
             if val < 0x10000:
@@ -316,7 +325,7 @@ class Translator(object):
                     else:
                         e.append(l >> 12 | 224)
                     e.append(l >> 6 & 63 | 128)
-                e.append(l & 63 | 128)
+                    e.append(l & 63 | 128)
             g += 1
         a = b
         for i, value in enumerate(e):
