@@ -45,8 +45,8 @@ lets do something japanese... こんにちは！
 >>> translator = Translator('en', 'jp')
 >>> with open(sourcefile, 'r') as infile, open(destfile, 'w+') as outfile:
         # i recommend writing a custom function which translates bigger chunks to minimize the amount of api calls.
-        while line := iter(lambda:infile.readline(), ''):
-            outfile.writeline(translator(line))
+        for line in infile:
+            outfile.write(translator(line))
 ```
 
 
