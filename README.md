@@ -33,7 +33,7 @@ from translator import translate
 
 # usage variation 1
 
-from translator import Translator
+>>> from translator import Translator
 >>> to_japanese = Translator('auto','ja')
 >>> print('lets do something japanese...', to_japanese('Good afternoon!'))
 lets do something japanese... こんにちは！
@@ -41,9 +41,12 @@ lets do something japanese... こんにちは！
 
 # usage variation 2 : translate files
 
-from translate import Translator
-
+>>> from translate import Translator
 >>> translator = Translator('en', 'jp')
->>> with open(sourcefile, 'r') as srcf, open(destfile, 'w+') as dstf:
->>>     dstf.writeline(translator.translate(srcf.readline()))
+>>> with open(sourcefile, 'r') as infile, open(destfile, 'w+') as outfile:
+        # i recommend writing a custom function which translates bigger chunks to minimize the amount of api calls.
+        while line := iter(lambda:infile.readline(), ''):
+            outfile.writeline(translator(line))
 ```
+
+
