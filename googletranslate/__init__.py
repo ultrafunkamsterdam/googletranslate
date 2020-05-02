@@ -171,11 +171,10 @@ def translate(text, from_lang='auto', to_lang=None, ):
 
 class TranslatedString(str):
 
-    def __new__(cls, *s, extra=None):
+    def __new__(cls, s, extra=None):
+        return super().__new__(cls, s)
 
-        return super().__new__(cls, ''.join(s))
-
-    def __init__(self, *s, extra=None):
+    def __init__(self, s, extra=None):
         super().__init__()
 
         response_parts_name_mapping = {
@@ -202,12 +201,10 @@ class TranslatedString(str):
 
 class Translator(object):
 
-
     _ua = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
            "AppleWebKit/537.36 (KHTML, like Gecko) "
            "Chrome/75.0.3770.142 Safari/537.36")
     _api_url = "https://translate.google.com{}"
-
 
     def __init__(self,
                  source_language='auto',
