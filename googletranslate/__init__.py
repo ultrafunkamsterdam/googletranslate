@@ -14,7 +14,7 @@
 
 
  usage:
- from translator import translate
+ from googletranslate import translate
 
  translate( 'Have fun using this!', 'auto', 'nl')
  'Veel plezier ermee!'
@@ -29,7 +29,7 @@
 
  # usage variation 1
 
- from translator import Translator
+ from googletranslate import Translator
  to_japanese = Translator('auto','ja')
  print('lets do something japanese...', to_japanese('Good afternoon!'))
 
@@ -38,12 +38,17 @@
 
 
  # usage variation 2 : translate files
- 
- from translate import Translator
+
+ from googletranslate import Translator
  translator = Translator('en', 'jp')
+
+ # of course you can also translate a complete file if it does not exceed 5000 characters.
+
  with open(sourcefile, 'r') as srcf, open(destfile, 'w+') as dstf:
-     dstf.writeline(translator.translate(srcf.readline()))
- 
+     # i recommend writing a custom function which translates bigger chunks to minimize the amount of api calls.
+     while line := iter(lambda:fh.readline(), ''):
+        dstf.writeline(translator.translate(line)
+
 """
 
 import math
@@ -51,7 +56,6 @@ import re
 import time
 
 import requests
-
 
 LANG_CODE_TO_NAME = {
     "nl": "Dutch",
@@ -261,11 +265,8 @@ class Translator(object):
         return TranslatedString(translation, extra=raw)
 
     def _calc_token(self, text):
-        if self._tkk:
-            now: str = str(int(time.time() / 3600))
-            if self._tkk.split(".")[0] == now:
-                pass
-        else:
+
+        if not self._tkk or self._tkk.split(".")[0] != str(int(time.time() / 3600)):
             r: requests.Response = self._session.get(self._api_url.format(""))
             self._tkk = self._re_tkk.search(r.text)[1]
 
