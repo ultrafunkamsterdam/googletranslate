@@ -8,7 +8,7 @@
     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝
 
  UltrafunkAmsterdam
- v: 1.2
+ v: 2.0
 
  Google translate "without" limits and without API key
 
@@ -16,13 +16,13 @@
  usage:
  from googletranslate import translate
 
- translate( 'Have fun using this!', 'auto', 'nl')
+ translate( 'Have fun using this!', 'nl')
  'Veel plezier ermee!'
 
- translate( 'Have fun using this!', 'auto', 'fr')
+ translate( 'Have fun using this!', 'fr')
  'Amusez-vous en utilisant cela!'
 
- translate( 'Have fun using this!', 'auto', 'de')
+ translate( 'Have fun using this!', 'de', 'en') # this seocond parameter to specify source language - 'auto' by default.
  'Viel Spaß damit!'
 
 
@@ -30,7 +30,7 @@
  # usage variation 1
 
  from googletranslate import Translator
- to_japanese = Translator('auto','ja')
+ to_japanese = Translator('ja','auto')
  print('lets do something japanese...', to_japanese('Good afternoon!'))
 
  lets do something japanese... こんにちは！
@@ -58,6 +58,7 @@ import time
 import requests
 
 LANG_CODE_TO_NAME = {
+    "auto": "auto-recognized",
     "nl": "Dutch",
     "fy": "Frisian",
     "en": "English",
@@ -160,17 +161,20 @@ LANG_CODE_TO_NAME = {
     "yi": "Yiddish",
     "yo": "Yoruba",
     "zu": "Zulu",
-    "TW": "Chinese (Traditional)" ,
+    "TW": "Chinese (Traditional)",
 }
 LANG_NAME_TO_CODE = dict(map(reversed, LANG_CODE_TO_NAME.items()))
 
 
-def translate(text, from_lang='auto', to_lang=None, ):
-    return Translator(from_lang, to_lang).translate(text)
+def translate(
+    text,
+    dest,
+    src="auto",
+):
+    return Translator(dest, src).translate(text)
 
 
 class TranslatedString(str):
-
     def __new__(cls, s, extra=None):
         return super().__new__(cls, s)
 
@@ -200,58 +204,68 @@ class TranslatedString(str):
 
 
 class Translator(object):
+    _ua = (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1_4) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) "
+        "Mobile/16D57"
+    )
 
-    _ua = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-           "AppleWebKit/537.36 (KHTML, like Gecko) "
-           "Chrome/81.0.4044.138 Safari/537.36")
-    _api_url = "https://translate.google.com{}"
+    _api_url = "https://translate.googleapis.com{}"
 
-    def __init__(self,
-                 source_language='auto',
-                 destination_language=None,
-                 session=None):
+    def __init__(self, destination_language=None, source_language="auto", session=None):
 
         if not destination_language:
-            raise KeyError('missing destination language')
+            raise KeyError("missing destination language")
 
         self.source_language = source_language
         self.destination_language = destination_language
 
-        self._re_tkk = re.compile(r"tkk:\'(.+?)\'", re.DOTALL)
+        self._re_tkk = re.compile(r"tkk=\'(.+?)\'", re.DOTALL)
 
         self._session = session or requests.session()
         self._session.headers.update({"user-agent": self._ua})
         self._tkk = ""
         self._last_data = None
+        self._last_response = None
+        self._last_request = None
 
     def __call__(self, text):
         return self.translate(text)
 
+    def _call(self, url, **kw):
+        r = self._last_response = self._session.get(url, params=kw)
+        self._last_request = self._last_response.request
+        return r
+
     def translate(self, text: str):
+        """translates  <text> to {} field""".format(self.destination_language)
         tk = self._calc_token(text)
-        url = self._api_url.format("/translate_a/single")
+        url = self._api_url.format("/translate_a/t")
+
         params = {
-            "client": "webapp",
+            "anno": "3",
+            "client": "p",
+            "format": "html",
+            "v": 1.0,
+            "key": None,
+            "logld": "vTE_20200506_00",
             "sl": self.source_language,
             "tl": self.destination_language,
-            "hl": self.source_language,
-            "dt": ["at", "bd", "ex", "ld", "md", "qca", "rw", "rm", "ss", "t"],
-            "ie": "UTF-8",
-            "oe": "UTF-8",
-            "otf": 1,
-            "ssel": 0,
-            "tsel": 0,
+            "sp": "nmt",
+            "tc": 1,
+            "sr": 1,
             "tk": tk,
+            "mode": 1,
             "q": text,
         }
-        r = self._session.get(url, params=params)
 
+        r = self._call(url, **params)
         raw = r.json()
         result = raw[0]
 
         if not result:
-            return TranslatedString('')
-        translation = ''
+            return TranslatedString("")
+        translation = ""
         for part in result:
             try:
                 translation += part[0]
@@ -263,8 +277,23 @@ class Translator(object):
 
     def _calc_token(self, text):
 
-        if not self._tkk or self._tkk.split(".")[0] != str(int(time.time() / 3600)):
-            r: requests.Response = self._session.get(self._api_url.format(""))
+        if (
+            not self._tkk
+            or int(self._tkk.split(".")[0]) < int(time.time() / 3600) - 18000
+        ):
+            print("generating new tkk")
+            # just calling it to simulate human behaviour (as far as possible)
+            self._session.get(
+                self._api_url.format(
+                    "/translate_a/l?client=te&alpha=true&hl=en&cb=callback"
+                )
+            )
+
+            r = self._session.get(
+                self._api_url.format(
+                    "/translate_a/element.js?cb=googleTranslateElementInit"
+                )
+            )
             self._tkk = self._re_tkk.search(r.text)[1]
 
         def xor_rot(a, b):
@@ -303,9 +332,9 @@ class Translator(object):
                     e.append(l >> 6 | 192)
                 else:
                     if (
-                            (l & 64512) == 55296
-                            and g + 1 < size
-                            and a[g + 1] & 64512 == 56320
+                        (l & 64512) == 55296
+                        and g + 1 < size
+                        and a[g + 1] & 64512 == 56320
                     ):
                         g += 1
                         l = 65536 + ((l & 1023) << 10) + (a[g] & 1023)
@@ -326,3 +355,6 @@ class Translator(object):
             a = (a & 2147483647) + 2147483648
         a %= 1000000
         return "{}.{}".format(a, a ^ b)
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} from "{LANG_CODE_TO_NAME[self.source_language]}" to "{LANG_CODE_TO_NAME[self.destination_language]}">'
