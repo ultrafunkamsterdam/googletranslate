@@ -213,6 +213,9 @@ class Translator(object):
     _api_url = "https://translate.googleapis.com{}"
 
     def __init__(self, destination_language=None, source_language="auto", session=None):
+     
+        if source_language is None:
+           source_language = 'auto'
 
         if not destination_language:
             raise KeyError("missing destination language")
