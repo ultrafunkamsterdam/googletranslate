@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='googletranslate',
-    version='1.1',
+    version='2.0',
     packages=['googletranslate'],
     url='https://github.com/ultrafunkamsterdam/googletranslate',
     license='MIT',
