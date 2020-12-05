@@ -182,7 +182,9 @@ class TranslatedString(str):
 
     def __init__(self, s, extra=None):
         super().__init__()
-
+        if isinstance(extra, str):
+            self.detected_language = extra
+         
         response_parts_name_mapping = {
             0: "translation",
             1: "all-translations",
@@ -262,19 +264,16 @@ class Translator(object):
 
         r = self._call(url, **params)
         raw = r.json()
-        result = raw[0]
-
-        if not result:
-            return TranslatedString("")
-        translation = ""
-        for part in result:
-            try:
-                translation += part[0]
-            except:
-                continue
-
         self._last_data = raw
-        return TranslatedString(translation, extra=raw)
+                
+        if not raw:
+            return TranslatedString("")
+        self._last_data = raw
+        
+        if isinstance(raw, str):
+            return TranslatedString(raw)
+        return TranslatedString(*raw)
+        
 
     def _calc_token(self, text):
 
