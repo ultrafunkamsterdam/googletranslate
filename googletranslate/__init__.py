@@ -54,8 +54,10 @@
 import math
 import re
 import time
-
+import logging
 import requests
+
+logger = logging.getLogger(__name__)
 
 LANG_CODE_TO_NAME = {
     "auto": "auto-recognized",
@@ -213,21 +215,17 @@ class Translator(object):
     _api_url = "https://translate.googleapis.com{}"
 
     def __init__(self, destination_language=None, source_language="auto", session=None):
-     
-        if source_language is None:
-           source_language = 'auto'
 
         if not destination_language:
             raise KeyError("missing destination language")
-
+        if not source_language:
+            source_language = "auto"
         self.source_language = source_language
         self.destination_language = destination_language
-
         self._re_tkk = re.compile(r"tkk=\'(.+?)\'", re.DOTALL)
-
         self._session = session or requests.session()
         self._session.headers.update({"user-agent": self._ua})
-        self._tkk = ""
+        self.__class__._tkk = ""
         self._last_data = None
         self._last_response = None
         self._last_request = None
@@ -241,13 +239,13 @@ class Translator(object):
         return r
 
     def translate(self, text: str):
-        """translates  <text> to {} field""".format(self.destination_language)
+        """translates  <text> to configured destination_language"""
         tk = self._calc_token(text)
         url = self._api_url.format("/translate_a/t")
 
         params = {
             "anno": "3",
-            "client": "p",
+            "client": "t",
             "format": "html",
             "v": 1.0,
             "key": None,
@@ -281,14 +279,14 @@ class Translator(object):
     def _calc_token(self, text):
 
         if (
-            not self._tkk
-            or int(self._tkk.split(".")[0]) < int(time.time() / 3600) - 18000
+            not self.__class__._tkk
+            or int(self.__class__._tkk.split(".")[0]) < int(time.time() / 3600) - 18000
         ):
-            print("generating new tkk")
+            logger.debug("generating new tkk")
             # just calling it to simulate human behaviour (as far as possible)
             self._session.get(
                 self._api_url.format(
-                    "/translate_a/l?client=te&alpha=true&hl=en&cb=callback"
+                    "/translate_a/l?client=t&alpha=true&hl=en&cb=callback"
                 )
             )
 
@@ -297,7 +295,7 @@ class Translator(object):
                     "/translate_a/element.js?cb=googleTranslateElementInit"
                 )
             )
-            self._tkk = self._re_tkk.search(r.text)[1]
+            self.__class__._tkk = self._re_tkk.search(r.text)[1]
 
         def xor_rot(a, b):
             size_b = len(b)
@@ -320,7 +318,7 @@ class Translator(object):
                     math.floor((val - 0x10000) / 0x400 + 0xD800),
                     math.floor((val - 0x10000) % 0x400 + 0xDC00),
                 ]
-        b = self._tkk if self._tkk != "0" else ""
+        b = self.__class__._tkk if self.__class__._tkk != "0" else ""
         d = b.split(".")
         b = int(d[0]) if len(d) > 1 else 0
         e = []
