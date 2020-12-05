@@ -19,7 +19,7 @@ pip3 install git+https://github.com/ultrafunkamsterdam/googletranslate
  
 ```python
  
-from translator import translate
+>>>from googletranslate import translate
 
 >>> translate( 'Have fun using this!', 'auto', 'nl')
 'Veel plezier ermee!'
@@ -33,7 +33,7 @@ from translator import translate
 
 # usage variation 1
 
->>> from translator import Translator
+>>> from googletranslate import Translator
 >>> to_japanese = Translator('auto','ja')
 >>> print('lets do something japanese...', to_japanese('Good afternoon!'))
 lets do something japanese... こんにちは！
@@ -41,7 +41,7 @@ lets do something japanese... こんにちは！
 
 # usage variation 2 : translate files
 
->>> from translate import Translator
+>>> from googletranslate import Translator
 >>> translator = Translator('en', 'jp')
 >>> with open(sourcefile, 'r') as infile, open(destfile, 'w+') as outfile:
         # i recommend writing a custom function which translates bigger chunks to minimize the amount of api calls.
