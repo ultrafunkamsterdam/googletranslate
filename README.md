@@ -21,20 +21,23 @@ pip3 install git+https://github.com/ultrafunkamsterdam/googletranslate
  
 >>>from googletranslate import translate
 
->>> translate( 'Have fun using this!', 'auto', 'nl')
+>>> translate( 'Have fun using this!', 'nl')
 'Veel plezier ermee!'
 
->>> translate( 'Have fun using this!', 'auto', 'fr')
+# you could also explicitly specify source and/or destination language.
+>>> translate( 'have fun using this', dest='nl',  src='en' )
+
+>>> translate( 'Have fun using this!', 'fr')
 'Amusez-vous en utilisant cela!'
 
->>> translate( 'Have fun using this!', 'auto', 'de')
+>>> translate( 'Have fun using this!', 'de', 'en')
 'Viel Spaß damit!'
 
 
 # usage variation 1
 
 >>> from googletranslate import Translator
->>> to_japanese = Translator('auto','ja')
+>>> to_japanese = Translator('ja')
 >>> print('lets do something japanese...', to_japanese('Good afternoon!'))
 lets do something japanese... こんにちは！
 
@@ -42,8 +45,8 @@ lets do something japanese... こんにちは！
 # usage variation 2 : translate files
 
 >>> from googletranslate import Translator
->>> translator = Translator('en', 'jp')
->>> with open(sourcefile, 'r') as infile, open(destfile, 'w+') as outfile:
+>>> translator = Translator('es')
+>>> with open(somedocument.txt, 'r') as infile, open(somespanishdocument.txt, 'w+') as outfile:
         # i recommend writing a custom function which translates bigger chunks to minimize the amount of api calls.
         for line in infile:
             outfile.write(translator(line))
