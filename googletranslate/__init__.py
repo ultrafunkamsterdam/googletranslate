@@ -51,6 +51,14 @@
 
 """
 
+__version__  = '2.0'
+__author__   = 'Leon van Goolen - UltrafunkAmsterdam'
+__license__  = 'MIT'
+__version__  = '2.0.0'
+__status__   = 'Development'
+
+__all__ = ['translate', 'Translator', 'LANG_CODE_TO_NAME', 'LANG_NAME_TO_CODE']
+
 import math
 import re
 import time
