@@ -278,9 +278,13 @@ class Translator(object):
             return TranslatedString("")
         self._last_data = raw
         
-        if isinstance(raw, str):
-            return TranslatedString(raw)
-        return TranslatedString(*raw)
+        if not isinstance(raw, str):
+            raw = ''.join(raw)
+       
+        if '<b>' in raw:
+            raw = ''.join(re.findall(r'<b>(.*?)</b>', raw))
+
+        return TranslatedString(raw)
         
 
     def _calc_token(self, text):
