@@ -271,6 +271,7 @@ class Translator(object):
         }
 
         r = self._call(url, **params)
+        logger.debug('response: %s => %s' % (r, r.text))
         raw = r.json()
         self._last_data = raw
                 
