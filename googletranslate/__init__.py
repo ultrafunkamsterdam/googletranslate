@@ -291,7 +291,7 @@ class Translator(object):
         self._last_data = raw
         
         if not isinstance(raw, str):
-            raw = ''.join(raw)
+            raw = unwield(raw)
        
         if '<b>' in raw:
             raw = ''.join(re.findall(r'<b>(.*?)</b>', raw))
