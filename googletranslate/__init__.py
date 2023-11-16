@@ -269,7 +269,18 @@ class Translator(object):
             "mode": 1,
             "q": text,
         }
-
+     
+        def unwield(arr):
+            """
+            unwield structure consisting of lists of lists
+            to extract the translated string.
+            does not modify the passed array in place
+            """
+            c = arr[:]
+            while isinstance(c, list) and len(c) >= 1:
+                c = c[0]
+            return c
+         
         r = self._call(url, **params)
         logger.debug('response: %s => %s' % (r, r.text))
         raw = r.json()
