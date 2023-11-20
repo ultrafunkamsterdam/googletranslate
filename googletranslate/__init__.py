@@ -180,8 +180,9 @@ def translate(
     text,
     dest,
     src="auto",
+    **kw,
 ):
-    return Translator(dest, src).translate(text)
+    return Translator(dest, src).translate(text, kw)
 
 
 class TranslatedString(str):
@@ -248,14 +249,14 @@ class Translator(object):
         self._last_request = self._last_response.request
         return r
 
-    def translate(self, text: str):
+    def translate(self, text: str, kw: dict):
         """translates  <text> to configured destination_language"""
         tk = self._calc_token(text)
         url = self._api_url.format("/translate_a/t")
 
         params = {
             "anno": "3",
-            "client": "t",
+            "client": kw.get("client", "t"),
             "format": "html",
             "v": 1.0,
             "key": None,
